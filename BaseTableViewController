@@ -1,0 +1,78 @@
+import UIKit
+import LocalAuthentication
+
+class BaseTableViewController: UITableViewController, UIAlertViewDelegate {
+    
+    let logInTimer = NSUserDefaults.standardUserDefaults()
+    let currentTime = NSDate().timeIntervalSince1970
+    
+    func authenticateUser(){
+        let context = LAContext()
+        var error: NSError?
+        let reasonString = "Authentication is required for Admin!"
+        context.localizedFallbackTitle = "Enter your PIN Code"
+        if context.canEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, error: &error){
+            context.evaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, localizedReason: reasonString, reply: {(success, policyError) ->Void in
+                if success{
+                    print("Authentication successful!")
+                }
+                else{
+                    switch policyError!.code{
+                    case LAError.SystemCancel.rawValue:
+                        print("Authentication was cancelled by the system!")
+                    case LAError.UserCancel.rawValue:
+                        NSOperationQueue.mainQueue().addOperationWithBlock({ () -> Void in
+                            self.showPasswordAlert()
+                            
+                        })
+                        print("Authentication was cancelled by the user!")
+                    case LAError.UserFallback.rawValue:
+                        print("User selected to enter password.")
+                        NSOperationQueue.mainQueue().addOperationWithBlock({() -> Void in
+                            self.showPasswordAlert()
+                        })
+                    default:
+                        print("Authentication failed!")
+                        NSOperationQueue.mainQueue().addOperationWithBlock({ () -> Void in
+                            self.showPasswordAlert()
+                        })
+                    }
+                }
+            })
+        }
+        else{
+            print(error?.localizedDescription)
+            NSOperationQueue.mainQueue().addOperationWithBlock({ () -> Void in
+                self.showPasswordAlert()
+            })
+        }
+        
+    }
+    
+    
+    func showPasswordAlert(){
+        let alertController = UIAlertController(title: "Touch ID Password", message: "Please enter your password", preferredStyle: .Alert)
+        let defaultAction = UIAlertAction(title: "OK", style: .Cancel) {(action) -> Void in
+            if let textField = alertController.textFields?.first as UITextField?{
+                if textField.text == "hello" {
+                    print("Authentication successfull!")
+                }
+                else{
+                    self.showPasswordAlert()
+                }
+            }
+            
+        }
+        alertController.addAction(defaultAction)
+        alertController.addTextFieldWithConfigurationHandler{(textField) -> Void in
+            textField.placeholder = "Password"
+            textField.secureTextEntry = true
+            
+        }
+        self.presentViewController(alertController, animated: true, completion: nil)
+        
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+    }
