@@ -1,0 +1,37 @@
+# This is part of my appdelegate file
+
+mport UIKit
+import LocalAuthentication
+
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
+
+    var window: UIWindow?
+    var storyboard: UIStoryboard?
+    var baseTableVC = BaseTableViewController()
+    var baseVC = BaseViewController()
+
+    func applicationWillEnterForeground(application: UIApplication) {
+        // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
+        let logInStatus = NSUserDefaults.standardUserDefaults()
+        let currentTime = NSDate().timeIntervalSince1970
+        let roundCurrentTime = (round(currentTime))
+        // Pin expire limit
+        let pinExpLimit: Double = 30
+        // Set the exact time of expire for pin
+        let pinExpDate = (currentTime + pinExpLimit)
+        let newPinExpDate = (round(pinExpDate))
+        if (logInStatus.doubleForKey("expPinTime") <= roundCurrentTime) {
+            self.baseTableVC.presentViewController(self.baseTableVC.alertVC, animated: true, completion: nil)
+
+            self.baseTableVC.authenticateUser()
+            print("AppDelegate Pin Exp Time")
+            print(logInStatus.doubleForKey("expPinTime"))
+            //print(newPinExpDate)
+            print("AppDelegate Current Time")
+            print(roundCurrentTime)
+            logInStatus.setDouble(newPinExpDate, forKey: "expPinTime")
+            NSUserDefaults.standardUserDefaults().synchronize()
+            
+        }
+      }
