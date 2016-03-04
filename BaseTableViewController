@@ -76,3 +76,4 @@ class BaseTableViewController: UITableViewController, UIAlertViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
     }
+}
